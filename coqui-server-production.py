@@ -23,15 +23,14 @@ logger = logging.getLogger(__name__)
 # Initialize FastAPI
 app = FastAPI(title="Coqui TTS GPU Server")
 
-# CORS configuration - UPDATE with your production domain
+# CORS configuration - Updated with production domain
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://localhost:3001", 
         "https://*.vercel.app",  # Your Vercel deployments
-        # Add your production domain here:
-        # "https://yourdomain.com",
+        "https://hearo-kn4b83b5k-genesisfuns-projects.vercel.app",  # Production
     ],
     allow_credentials=True,
     allow_methods=["*"],
