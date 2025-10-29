@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePlayer } from "../../contexts/PlayerContext";
@@ -44,7 +44,7 @@ interface PublicBook {
   };
 }
 
-export default function DiscoverPage() {
+function DiscoverPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showError } = useToast();
@@ -874,5 +874,13 @@ export default function DiscoverPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div></div>}>
+      <DiscoverPageContent />
+    </Suspense>
   );
 }
