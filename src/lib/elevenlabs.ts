@@ -1,10 +1,18 @@
 // ElevenLabs API integration using fetch
 // This avoids SDK compatibility issues while maintaining functionality
-// @ts-nocheck
-/* eslint-disable */
+
+// Only import fs in server environment
+let readFile: any, writeFile: any, mkdir: any, access: any;
+if (typeof window === 'undefined') {
+  try {
+    const fs = require('fs/promises');
+    ({ readFile, writeFile, mkdir, access } = fs);
+  } catch (e) {
+    // In edge runtime, these won't be available
+  }
+}
 
 import { createHash } from "crypto";
-import type { readFile, writeFile, mkdir, access } from "fs/promises";
 import { join } from "path";
 
 export interface VoiceSettings {
