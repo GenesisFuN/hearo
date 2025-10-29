@@ -364,7 +364,7 @@ export default function ProfilePage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-accent">
-                {profile.stats.averageRating.toFixed(1)}⭐
+                {profile.stats.averageRating ? profile.stats.averageRating.toFixed(1) : "0.0"}⭐
               </div>
               <div className="text-sm text-text-light/60">Avg Rating</div>
             </div>
@@ -460,7 +460,7 @@ export default function ProfilePage() {
                       {book.views}
                     </span>
                     <span className="flex items-center gap-1">
-                      ⭐ {book.rating.toFixed(1)}
+                      ⭐ {book.rating ? book.rating.toFixed(1) : "0.0"}
                     </span>
                   </div>
                   {book.genre && (
