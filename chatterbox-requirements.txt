@@ -1,0 +1,15 @@
+# Chatterbox TTS Server Requirements
+# Install with: pip install -r chatterbox-requirements.txt
+
+# Core dependencies
+chatterbox-tts>=0.1.4
+torch>=2.0.0
+torchaudio>=2.0.0
+
+# Web server
+flask>=2.3.0
+flask-cors>=4.0.0
+
+# Optional: for better performance
+nvidia-ml-py3>=7.352.0  # GPU monitoring
+psutil>=5.9.0           # System monitoring

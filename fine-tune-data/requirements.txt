@@ -1,0 +1,13 @@
+# Preprocessing & Transcription (Run on your PC)
+pydub==0.25.1
+openai-whisper==20231117
+tqdm==4.66.1
+
+# Training (Colab only - already installed there)
+# TTS==0.22.0
+# trainer==0.0.36
+# deepspeed==0.14.0
+
+# Note: Also need ffmpeg installed on system
+# Windows: winget install ffmpeg
+# Or download from: https://ffmpeg.org/

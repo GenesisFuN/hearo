@@ -1,0 +1,195 @@
+import { NextRequest, NextResponse } from "next/server";
+import { readdir, stat, readFile } from "fs/promises";
+import { join } from "path";
+
+export async function GET(request: NextRequest) {
+  try {
+    const books = await getBooksFromFiles();
+
+    return NextResponse.json({
+      success: true,
+      books,
+      count: books.length,
+    });
+  } catch (error) {
+    console.error("Error fetching books:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch books" },
+      { status: 500 }
+    );
+  }
+}
+
+async function getBooksFromFiles() {
+  const books = [];
+
+  try {
+    // Read text uploads
+    const textDir = join(process.cwd(), "uploads", "text");
+    try {
+      const textFiles = await readdir(textDir);
+
+      for (const filename of textFiles) {
+        const filePath = join(textDir, filename);
+        const fileStat = await stat(filePath);
+
+        // Extract timestamp from filename (format: timestamp-originalname)
+        const timestampMatch = filename.match(/^(\d+)-(.+)$/);
+        const timestamp = timestampMatch
+          ? parseInt(timestampMatch[1])
+          : Date.now();
+        const originalName = timestampMatch ? timestampMatch[2] : filename;
+
+        // Generate book title from filename
+        const title = originalName
+          .replace(/\.(txt|md|pdf)$/i, "")
+          .replace(/[_-]/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+
+        const bookId = `book_${timestamp}`;
+
+        // Check for corresponding AI-generated audio
+        const audioDir = join(process.cwd(), "uploads", "audio");
+        let audioPath = null;
+        let hasAudio = false;
+
+        try {
+          const audioFiles = await readdir(audioDir);
+
+          // Find the specific audio file that matches this exact text file timestamp
+          // Audio filename format: {audioTimestamp}-ai-{textTimestamp}-{originalName}.mp3
+          const exactMatch = audioFiles.find((audioFile) =>
+            audioFile.includes(`-ai-${timestamp}-`)
+          );
+
+          if (exactMatch) {
+            audioPath = `/api/uploads/audio/${exactMatch}`;
+            hasAudio = true;
+            console.log(
+              `AUDIO MATCHING DEBUG - Text: ${filename}, Found exact match: ${exactMatch}`
+            );
+          } else {
+            // Fallback: look for any audio with the same base filename
+            const fallbackMatch = audioFiles.find((audioFile) =>
+              audioFile.includes(originalName.replace(/\.(txt|md|pdf)$/i, ""))
+            );
+            if (fallbackMatch) {
+              audioPath = `/api/uploads/audio/${fallbackMatch}`;
+              hasAudio = true;
+              console.log(
+                `AUDIO MATCHING DEBUG - Text: ${filename}, Found fallback match: ${fallbackMatch}`
+              );
+            }
+          }
+        } catch (audioError) {
+          // Audio directory doesn't exist or no audio files
+        }
+
+        // Determine status based on audio existence and upload time
+        const uploadTime = timestamp;
+        const currentTime = Date.now();
+        const elapsed = currentTime - uploadTime;
+        const maxProcessingTime = 1800000; // 30 minutes max for Coqui processing
+
+        let status = "processing";
+        let progress = 0;
+        let processingMessage = "";
+
+        if (hasAudio) {
+          status = "complete";
+          progress = 100;
+        } else if (elapsed < maxProcessingTime) {
+          // Still within reasonable processing time
+          status = "processing";
+          // Estimate progress based on typical Coqui processing (conservative)
+          progress = Math.min((elapsed / maxProcessingTime) * 95, 95);
+
+          if (elapsed < 30000) {
+            processingMessage = "Preparing text and splitting into chunks...";
+          } else if (elapsed < 120000) {
+            processingMessage =
+              "Generating speech with Coqui TTS (this may take several minutes)...";
+          } else {
+            processingMessage =
+              "Still processing... Coqui TTS is generating audio chunks...";
+          }
+        } else {
+          // Processing took longer than 30 minutes - likely an actual error
+          status = "error";
+          progress = 0;
+          processingMessage =
+            "Audio generation timed out. This may be due to server issues or very large files. Please try again or check server logs.";
+        }
+
+        books.push({
+          id: bookId,
+          title,
+          filename: originalName,
+          status,
+          progress,
+          type: "text",
+          uploadDate: new Date(timestamp).toISOString(),
+          fileSize: fileStat.size,
+          textPath: `/api/uploads/text/${filename}`,
+          audioPath: audioPath,
+          processingMessage: processingMessage || undefined,
+        });
+      }
+    } catch (textError) {
+      // Text directory doesn't exist
+      console.log("No text uploads directory found");
+    }
+
+    // Read direct audio uploads
+    const audioDir = join(process.cwd(), "uploads", "audio");
+    try {
+      const audioFiles = await readdir(audioDir);
+
+      for (const filename of audioFiles) {
+        // Skip AI-generated files (they're already associated with text uploads)
+        if (filename.includes("-ai-")) continue;
+
+        const filePath = join(audioDir, filename);
+        const fileStat = await stat(filePath);
+
+        // Extract timestamp from filename
+        const timestampMatch = filename.match(/^(\d+)-(.+)$/);
+        const timestamp = timestampMatch
+          ? parseInt(timestampMatch[1])
+          : Date.now();
+        const originalName = timestampMatch ? timestampMatch[2] : filename;
+
+        // Generate book title from filename
+        const title = originalName
+          .replace(/\.(mp3|wav|m4a)$/i, "")
+          .replace(/[_-]/g, " ")
+          .replace(/\b\w/g, (l) => l.toUpperCase());
+
+        books.push({
+          id: `audiobook_${timestamp}`,
+          title,
+          filename: originalName,
+          status: "complete",
+          progress: 100,
+          type: "audio",
+          uploadDate: new Date(timestamp).toISOString(),
+          fileSize: fileStat.size,
+          audioPath: `/api/uploads/audio/${filename}`,
+        });
+      }
+    } catch (audioError) {
+      // Audio directory doesn't exist
+      console.log("No audio uploads directory found");
+    }
+  } catch (error) {
+    console.error("Error reading upload directories:", error);
+  }
+
+  // Sort books by upload date (newest first)
+  books.sort(
+    (a, b) =>
+      new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
+  );
+
+  return books;
+}
