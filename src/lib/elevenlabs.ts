@@ -3,9 +3,9 @@
 
 // Only import fs in server environment
 let readFile: any, writeFile: any, mkdir: any, access: any;
-if (typeof window === 'undefined') {
+if (typeof window === "undefined") {
   try {
-    const fs = require('fs/promises');
+    const fs = require("fs/promises");
     ({ readFile, writeFile, mkdir, access } = fs);
   } catch (e) {
     // In edge runtime, these won't be available
