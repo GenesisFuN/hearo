@@ -523,7 +523,10 @@ export default function AnalyticsView() {
           <div className="space-y-4">
             <div className="text-center mb-4">
               <div className="text-4xl font-bold text-purple-500">
-                {overview.completionRate ? overview.completionRate.toFixed(1) : "0.0"}%
+                {overview.completionRate
+                  ? overview.completionRate.toFixed(1)
+                  : "0.0"}
+                %
               </div>
               <div className="text-sm text-text-light/60 mt-1">
                 of listeners finish books
@@ -635,7 +638,9 @@ export default function AnalyticsView() {
             <div className="flex justify-between items-center">
               <span className="text-text-light/70">Avg. Rating</span>
               <span className="text-accent font-bold">
-                {overview.averageRating ? overview.averageRating.toFixed(1) : "0.0"}{" "}
+                {overview.averageRating
+                  ? overview.averageRating.toFixed(1)
+                  : "0.0"}{" "}
               </span>
             </div>
             <div className="flex justify-between items-center">

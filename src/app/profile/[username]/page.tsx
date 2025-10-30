@@ -364,7 +364,10 @@ export default function ProfilePage() {
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-accent">
-                {profile.stats.averageRating ? profile.stats.averageRating.toFixed(1) : "0.0"}⭐
+                {profile.stats.averageRating
+                  ? profile.stats.averageRating.toFixed(1)
+                  : "0.0"}
+                ⭐
               </div>
               <div className="text-sm text-text-light/60">Avg Rating</div>
             </div>
