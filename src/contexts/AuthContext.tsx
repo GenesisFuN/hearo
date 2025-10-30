@@ -62,30 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Add 5 second timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-      );
-      
-      const fetchPromise = supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
       if (error && error.code !== "PGRST116") {
         console.error("Error fetching profile:", error);
-        setProfile(null);
-      } else if (data) {
-        setProfile(data);
       } else {
-        setProfile(null);
+        setProfile(data);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -145,21 +134,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
-    console.log('Attempting sign in for:', email);
-    
+    console.log("Attempting sign in for:", email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
-    console.log('Sign in result:', { data, error });
+    console.log("Sign in result:", { data, error });
 
     if (error) {
-      console.error('Sign in error:', error);
+      console.error("Sign in error:", error);
       throw error;
     }
-    
-    console.log('Sign in successful, user:', data.user?.id);
+
+    console.log("Sign in successful, user:", data.user?.id);
   };
 
   const signOut = async () => {

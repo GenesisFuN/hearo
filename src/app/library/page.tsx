@@ -84,13 +84,25 @@ export default function LibraryPage() {
 
   const loadLibraryData = async () => {
     setLoading(true);
-    await Promise.all([
-      fetchSavedBooks(),
-      fetchFollowingBooks(),
-      fetchPlaylists(),
-      fetchContinueListening(),
-    ]);
-    setLoading(false);
+    try {
+      // Add 10 second timeout for all library data loading
+      await Promise.race([
+        Promise.all([
+          fetchSavedBooks(),
+          fetchFollowingBooks(),
+          fetchPlaylists(),
+          fetchContinueListening(),
+        ]),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Loading timeout')), 10000)
+        )
+      ]);
+    } catch (error) {
+      console.error('Error loading library data:', error);
+      // Continue anyway - empty states will show
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchSavedBooks = async () => {
