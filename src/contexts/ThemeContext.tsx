@@ -28,7 +28,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const handleThemeChange = (event: Event) => {
       const customEvent = event as CustomEvent<Theme>;
       const newTheme = customEvent.detail;
-      if (newTheme && newTheme !== theme) {
+      if (newTheme) {
+        // Always apply the new theme from the event (don't check current theme)
         setTheme(newTheme);
       }
     };
