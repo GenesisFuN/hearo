@@ -58,7 +58,12 @@ export default function BookLibrary() {
   useEffect(() => {
     fetchBooks();
     fetchPublishedBooks();
-    const interval = setInterval(fetchBooks, 10000); // Refresh every 10 seconds
+
+    // Poll every 10 seconds
+    const interval = setInterval(() => {
+      fetchBooks();
+    }, 10000);
+
     return () => clearInterval(interval);
   }, []);
 

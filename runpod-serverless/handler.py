@@ -13,6 +13,14 @@ import logging
 from pathlib import Path
 import os
 
+# Patch torch.load to use weights_only=False by default
+# This is needed for XTTS model files with PyTorch 2.6+
+_original_torch_load = torch.load
+def patched_torch_load(*args, **kwargs):
+    kwargs.setdefault('weights_only', False)
+    return _original_torch_load(*args, **kwargs)
+torch.load = patched_torch_load
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -106,12 +114,13 @@ def handler(event):
                     speed=speed
                 )
             else:
-                # Use default voice
+                # Use default speaker (XTTS requires a speaker name for multi-speaker models)
                 model.tts_to_file(
                     text=text,
                     language=language,
                     file_path=output_path,
-                    speed=speed
+                    speed=speed,
+                    speaker="Claribel Dervla"  # Default female voice
                 )
             
             logger.info(f"Audio generated successfully: {output_path}")

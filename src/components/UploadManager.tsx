@@ -309,8 +309,15 @@ export default function UploadManager() {
           )
         );
 
-        // Poll for AI processing completion if text upload
-        if (uploadType === "text") {
+        // Trigger TTS processing and poll for completion if text upload
+        if (uploadType === "text" && result.chapters && result.voiceSettings) {
+          // Start TTS processing
+          startTTSProcessing(
+            result.workId,
+            result.chapters,
+            result.voiceSettings
+          );
+          // Poll for status
           pollProcessingStatus(result.bookId, fileId);
         }
       }
@@ -342,6 +349,46 @@ export default function UploadManager() {
     }
   };
 
+  // Start TTS processing by calling the API
+  const startTTSProcessing = async (
+    workId: string,
+    chapters: any[],
+    voiceSettings: any
+  ) => {
+    try {
+      console.log(`🎙️ Starting TTS processing for work ${workId}...`);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const response = await fetch("/api/tts/process", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          workId,
+          userId: session?.user?.id,
+          chapters,
+          voiceSettings,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("TTS processing failed:", error);
+        showToast("TTS processing failed to start", "error");
+      } else {
+        console.log("✅ TTS processing started successfully");
+      }
+    } catch (error) {
+      console.error("Error starting TTS processing:", error);
+      logError(error, "Upload Manager - Start TTS");
+    }
+  };
+
   // Poll for AI processing status
   const pollProcessingStatus = async (bookId: string, fileId: string) => {
     let pollCount = 0;
@@ -370,7 +417,7 @@ export default function UploadManager() {
             f.id === fileId
               ? {
                   ...f,
-                  progress: Math.min(progress || 95, 100),
+                  progress: progress !== undefined ? progress : f.progress,
                   status: status === "published" ? "published" : "processing",
                 }
               : f

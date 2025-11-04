@@ -82,41 +82,67 @@ export async function POST(request: NextRequest) {
       // Call RunPod TTS
       console.log(`   🎙️ Calling RunPod TTS server...`);
 
-      const response = await fetch(RUNPOD_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${RUNPOD_API_KEY}`,
-        },
-        body: JSON.stringify({
-          input: {
-            text: chapter.text,
-            language: voiceSettings.language || "en",
-            speed: voiceSettings.speed || 0.92,
-          },
-        }),
-      });
+      let result;
+      let retries = 0;
+      const maxRetries = 60; // Wait up to 5 minutes (60 * 5 seconds)
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `RunPod TTS error: ${response.status} ${response.statusText} - ${errorText}`
-        );
+      while (retries < maxRetries) {
+        const response = await fetch(RUNPOD_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RUNPOD_API_KEY}`,
+          },
+          body: JSON.stringify({
+            input: {
+              text: chapter.text,
+              language: voiceSettings.language || "en",
+              speed: voiceSettings.speed || 0.92,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(
+            `RunPod TTS error: ${response.status} ${response.statusText} - ${errorText}`
+          );
+        }
+
+        result = await response.json();
+
+        // Check if request is still queued or in progress
+        if (result.status === "IN_QUEUE" || result.status === "IN_PROGRESS") {
+          console.log(
+            `   ⏳ Status: ${result.status}, waiting... (${retries + 1}/${maxRetries})`
+          );
+          retries++;
+          await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
+          continue;
+        }
+
+        // Request completed
+        break;
       }
 
-      const result = await response.json();
+      if (retries >= maxRetries) {
+        throw new Error("RunPod request timed out after 5 minutes");
+      }
 
-      console.log(`   📦 RunPod response:`, JSON.stringify(result).substring(0, 200));
+      console.log(
+        `   📦 RunPod response:`,
+        JSON.stringify(result).substring(0, 200)
+      );
 
       // RunPod runsync wraps handler response in "output"
       // Handler returns: {audio_base64, format, sample_rate}
       // RunPod returns: {output: {audio_base64, format, sample_rate}} OR {error: ...}
       const output = result.output || result;
-      
+
       if (result.error) {
         throw new Error(`RunPod error: ${result.error}`);
       }
-      
+
       if (!output.audio_base64) {
         console.error(`   ❌ Missing audio data in response:`, result);
         throw new Error("RunPod response missing audio data");
@@ -227,14 +253,14 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error("TTS processing error:", error);
     console.error("Error stack:", error.stack);
-    
+
     // Update work to show error
     try {
       const supabase = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
-      
+
       const { workId, userId } = await request.json();
       if (workId) {
         await supabase
@@ -248,7 +274,7 @@ export async function POST(request: NextRequest) {
     } catch (updateError) {
       console.error("Failed to update work status:", updateError);
     }
-    
+
     return NextResponse.json(
       {
         error: "TTS processing failed",

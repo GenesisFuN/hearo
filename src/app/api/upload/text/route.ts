@@ -369,58 +369,28 @@ export async function POST(request: NextRequest) {
       finalVoiceId: voiceSettings.voiceId,
     });
 
-    // Trigger background TTS processing
-    try {
-      const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Don't trigger background processing here - let the client handle it
+    // This avoids serverless function timeout issues
+    const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-      // Call TTS processing endpoint in background (don't await)
-      fetch(
-        `${process.env.NEXT_PUBLIC_SITE_URL || "https://hearo-zeta.vercel.app"}/api/tts/process`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            workId: work.id,
-            userId: user.id,
-            chapters: chunks.map((text, index) => ({
-              chapterId: `chapter-${index + 1}`,
-              text,
-              title: `Chapter ${index + 1}`,
-            })),
-            voiceSettings,
-          }),
-        }
-      ).catch((err) => {
-        console.error("Background TTS processing error:", err);
-      });
+    console.log(`✅ Upload complete, ready for TTS processing: ${jobId}`);
 
-      console.log(`✅ TTS job triggered: ${jobId}`);
-
-      return NextResponse.json({
-        success: true,
-        message: "File uploaded successfully, TTS processing started",
-        bookId: actualBookId,
-        workId: work.id,
-        jobId, // Return job ID for status polling
-        filename,
-        filepath: storagePath,
-        fileUrl,
-      });
-    } catch (processError: any) {
-      console.error("❌ Failed to trigger TTS job:", processError);
-
-      // TTS trigger failed - return error
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Failed to start TTS processing",
-          details: processError.message,
-        },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json({
+      success: true,
+      message: "File uploaded successfully, ready for TTS processing",
+      bookId: actualBookId,
+      workId: work.id,
+      jobId,
+      filename,
+      filepath: storagePath,
+      fileUrl,
+      chapters: chunks.map((text, index) => ({
+        chapterId: `chapter-${index + 1}`,
+        text,
+        title: `Chapter ${index + 1}`,
+      })),
+      voiceSettings,
+    });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json(
