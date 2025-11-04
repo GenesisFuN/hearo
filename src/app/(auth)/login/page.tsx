@@ -30,25 +30,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 px-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <div className="max-w-md w-full bg-surface p-8 rounded-2xl shadow-xl border border-surface-light">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="text-5xl font-display font-bold bg-gradient-to-r from-orange-500 to-amber-600 bg-clip-text text-transparent">
+            <div className="text-5xl font-display font-bold text-accent">
               Hearo
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-3xl font-bold text-text-light mb-2">
             Welcome Back
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="text-text-light/70">
             Log in to your Hearo account
           </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
+            <label className="block text-sm font-medium text-text-light/90 mb-2">
               Email Address
             </label>
             <input
@@ -56,19 +56,19 @@ export default function LoginPage() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
+              className="w-full px-4 py-3 bg-background border border-surface-light rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition text-text-light placeholder-text-light/40"
               required
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label className="block text-sm font-medium text-text-light/90">
                 Password
               </label>
               <Link
                 href="/auth/forgot-password"
-                className="text-sm text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium"
+                className="text-sm text-accent hover:text-accent/80 font-medium transition"
               >
                 Forgot password?
               </Link>
@@ -78,13 +78,13 @@ export default function LoginPage() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400"
+              className="w-full px-4 py-3 bg-background border border-surface-light rounded-lg focus:ring-2 focus:ring-accent focus:border-transparent transition text-text-light placeholder-text-light/40"
               required
             />
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -92,18 +92,18 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-orange-500 to-amber-600 text-white py-3 rounded-lg font-medium hover:from-orange-600 hover:to-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg hover:shadow-xl"
+            className="w-full bg-accent hover:bg-accent/90 text-background py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg hover:shadow-xl"
           >
             {loading ? "Logging in..." : "Log In"}
           </button>
         </form>
 
         <div className="mt-6 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-300">
+          <p className="text-sm text-text-light/70">
             Don't have an account?{" "}
             <Link
               href="/signup"
-              className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 font-medium"
+              className="text-accent hover:text-accent/80 font-medium transition"
             >
               Sign up
             </Link>
