@@ -287,6 +287,7 @@ export async function POST(request: NextRequest) {
         description: `Uploaded from ${file.name}`,
         status: "processing",
         is_public: false,
+        progress_percent: 0,
       })
       .select()
       .single();

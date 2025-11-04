@@ -108,13 +108,21 @@ export async function POST(request: NextRequest) {
 
       console.log(`   📦 RunPod response:`, JSON.stringify(result).substring(0, 200));
 
-      // RunPod returns audio as base64 in result.output.audio_base64
-      if (!result.output || !result.output.audio_base64) {
+      // RunPod runsync wraps handler response in "output"
+      // Handler returns: {audio_base64, format, sample_rate}
+      // RunPod returns: {output: {audio_base64, format, sample_rate}} OR {error: ...}
+      const output = result.output || result;
+      
+      if (result.error) {
+        throw new Error(`RunPod error: ${result.error}`);
+      }
+      
+      if (!output.audio_base64) {
         console.error(`   ❌ Missing audio data in response:`, result);
         throw new Error("RunPod response missing audio data");
       }
 
-      const audioBuffer = Buffer.from(result.output.audio_base64, "base64");
+      const audioBuffer = Buffer.from(output.audio_base64, "base64");
       const duration = calculateWavDuration(audioBuffer.buffer);
 
       console.log(`   ✅ Generated ${audioBuffer.byteLength} bytes`);
