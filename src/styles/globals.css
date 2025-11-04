@@ -2,35 +2,14 @@
 
 /* Define custom colors directly in CSS for Tailwind v4 */
 @layer base {
+  /* Light mode by default (will be overridden by ThemeContext) */
   :root {
-    /* Light mode colors */
-    --color-background: #ffffff;
-    --color-surface: #f5f5f5;
-    --color-surface-light: #e5e5e5;
-    --color-accent: #d4a574; /* Warm amber/gold */
-    --color-text-light: #000000;
-    --color-highlight: #d4a574;
-  }
-
-  /* Dark mode via media query OR .dark class */
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --color-background: #171718ff;
-      --color-surface: #1d1e1fff;
-      --color-surface-light: #2a2b2cff;
-      --color-accent: #d4a574; /* Warm amber/gold */
-      --color-text-light: #ffffffff;
-      --color-highlight: #d4a574;
-    }
-  }
-
-  .dark {
-    --color-background: #171718ff;
-    --color-surface: #1d1e1fff;
-    --color-surface-light: #2a2b2cff;
-    --color-accent: #d4a574; /* Warm amber/gold */
-    --color-text-light: #ffffffff;
-    --color-highlight: #d4a574;
+    --color-background: hsl(35, 35%, 92%);
+    --color-surface: hsl(35, 30%, 85%);
+    --color-surface-light: hsl(35, 25%, 78%);
+    --color-accent: hsl(25, 50%, 45%);
+    --color-text-light: hsl(30, 25%, 20%);
+    --color-highlight: hsl(345, 65%, 75%);
   }
 }
 

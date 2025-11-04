@@ -26,12 +26,30 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (darkMode) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
+                try {
+                  const savedTheme = localStorage.getItem('hearo-theme');
+                  const root = document.documentElement;
+                  
+                  if (savedTheme === 'dark') {
+                    root.classList.add('dark');
+                    root.style.setProperty('--color-background', 'hsl(30, 15%, 12%)');
+                    root.style.setProperty('--color-surface', 'hsl(30, 12%, 18%)');
+                    root.style.setProperty('--color-surface-light', 'hsl(30, 10%, 24%)');
+                    root.style.setProperty('--color-accent', 'hsl(40, 55%, 70%)');
+                    root.style.setProperty('--color-text', 'hsl(35, 25%, 88%)');
+                    root.style.setProperty('--color-text-light', 'hsl(35, 25%, 88%)');
+                    root.style.setProperty('--color-highlight', 'hsl(270, 70%, 65%)');
+                  } else {
+                    root.classList.remove('dark');
+                    root.style.setProperty('--color-background', 'hsl(35, 35%, 92%)');
+                    root.style.setProperty('--color-surface', 'hsl(35, 30%, 85%)');
+                    root.style.setProperty('--color-surface-light', 'hsl(35, 25%, 78%)');
+                    root.style.setProperty('--color-accent', 'hsl(25, 50%, 45%)');
+                    root.style.setProperty('--color-text', 'hsl(30, 25%, 20%)');
+                    root.style.setProperty('--color-text-light', 'hsl(30, 25%, 20%)');
+                    root.style.setProperty('--color-highlight', 'hsl(345, 65%, 75%)');
+                  }
+                } catch (e) {}
               })();
             `,
           }}
