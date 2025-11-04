@@ -72,14 +72,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Error fetching profile:", error);
       } else {
         setProfile(data);
-        
+
         // Apply user's theme preference if available (always override current theme)
         const userTheme = data?.theme_preference || "light";
         localStorage.setItem("hearo-theme", userTheme);
-        
+
         // Trigger theme update with custom event (use setTimeout to ensure ThemeContext is ready)
         setTimeout(() => {
-          window.dispatchEvent(new CustomEvent("themeChange", { detail: userTheme }));
+          window.dispatchEvent(
+            new CustomEvent("themeChange", { detail: userTheme })
+          );
         }, 0);
       }
     } catch (error) {

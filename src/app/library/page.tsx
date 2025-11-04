@@ -85,17 +85,12 @@ export default function LibraryPage() {
   const loadLibraryData = async () => {
     setLoading(true);
     try {
-      // Add 10 second timeout for all library data loading
-      await Promise.race([
-        Promise.all([
-          fetchSavedBooks(),
-          fetchFollowingBooks(),
-          fetchPlaylists(),
-          fetchContinueListening(),
-        ]),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Loading timeout")), 10000)
-        ),
+      // Load all library data with individual timeouts
+      await Promise.all([
+        fetchSavedBooks(),
+        fetchFollowingBooks(),
+        fetchPlaylists(),
+        fetchContinueListening(),
       ]);
     } catch (error) {
       console.error("Error loading library data:", error);
@@ -112,18 +107,28 @@ export default function LibraryPage() {
 
       if (!token) return;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch("/api/library", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
         setSavedBooks(data.books || []);
       }
     } catch (error) {
-      console.error("Failed to fetch saved books:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error("Failed to fetch saved books:", error);
+      }
+      // Set empty array on timeout or error
+      setSavedBooks([]);
     }
   };
 
@@ -134,18 +139,28 @@ export default function LibraryPage() {
 
       if (!token) return;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch("/api/feed/following", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
         setFollowingBooks(data.books || []);
       }
     } catch (error) {
-      console.error("Failed to fetch following books:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error("Failed to fetch following books:", error);
+      }
+      // Set empty array on timeout or error
+      setFollowingBooks([]);
     }
   };
 
@@ -155,18 +170,28 @@ export default function LibraryPage() {
       const token = session.data.session?.access_token;
       if (!token) return;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch("/api/playlists", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
         setPlaylists(data.playlists || []);
       }
     } catch (error) {
-      console.error("Failed to fetch playlists:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error("Failed to fetch playlists:", error);
+      }
+      // Set empty array on timeout or error
+      setPlaylists([]);
     }
   };
 
@@ -176,11 +201,17 @@ export default function LibraryPage() {
       const token = session.data.session?.access_token;
       if (!token) return;
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch("/api/continue-listening", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -191,7 +222,11 @@ export default function LibraryPage() {
         console.error("Continue Listening fetch failed:", response.status);
       }
     } catch (error) {
-      console.error("Failed to fetch continue listening:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error("Failed to fetch continue listening:", error);
+      }
+      // Set empty array on timeout or error
+      setContinueListening([]);
     }
   };
 
