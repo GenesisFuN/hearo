@@ -5,7 +5,7 @@
   :root {
     --color-background: #171718ff;
     --color-surface: #1d1e1fff;
-    --color-accent: #45e1d9ff;
+    --color-accent: #d4a574; /* Warm amber/gold */
     --color-text-light: #ffffffff;
   }
 }
