@@ -10,7 +10,6 @@ import { splitTextIntoChunks } from "../../../../lib/elevenlabs";
 import { TTSQueue } from "../../../../lib/queue";
 import { getPriorityForUser } from "../../../../lib/queue/types";
 import { AppError, ErrorCodes, logError } from "@/lib/errorHandling";
-import { inngest } from "@/lib/inngest/client";
 
 // Type definition for subscription (kept for getUserSubscription)
 type UserSubscription = {
@@ -369,14 +368,17 @@ export async function POST(request: NextRequest) {
       finalVoiceId: voiceSettings.voiceId,
     });
 
-    // Trigger Inngest function for background processing
+    // Trigger background TTS processing
     try {
       const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-      await inngest.send({
-        name: "tts/job.created",
-        data: {
-          jobId,
+      // Call TTS processing endpoint in background (don't await)
+      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://hearo-zeta.vercel.app'}/api/tts/process`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           workId: work.id,
           userId: user.id,
           chapters: chunks.map((text, index) => ({
@@ -385,7 +387,9 @@ export async function POST(request: NextRequest) {
             title: `Chapter ${index + 1}`,
           })),
           voiceSettings,
-        },
+        }),
+      }).catch((err) => {
+        console.error("Background TTS processing error:", err);
       });
 
       console.log(`✅ TTS job triggered: ${jobId}`);
@@ -400,15 +404,15 @@ export async function POST(request: NextRequest) {
         filepath: storagePath,
         fileUrl,
       });
-    } catch (inngestError: any) {
-      console.error("❌ Failed to trigger Inngest job:", inngestError);
+    } catch (processError: any) {
+      console.error("❌ Failed to trigger TTS job:", processError);
 
-      // Inngest failed - return error
+      // TTS trigger failed - return error
       return NextResponse.json(
         {
           success: false,
           error: "Failed to start TTS processing",
-          details: inngestError.message,
+          details: processError.message,
         },
         { status: 500 }
       );
