@@ -163,9 +163,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Sign out error:", error);
       }
 
+      // Save theme preference before clearing storage
+      const savedTheme = localStorage.getItem("hearo-theme");
+
       // Force clear all browser storage
       localStorage.clear();
       sessionStorage.clear();
+
+      // Restore theme preference
+      if (savedTheme) {
+        localStorage.setItem("hearo-theme", savedTheme);
+      }
 
       // Force redirect to login
       window.location.href = "/login";
