@@ -41,9 +41,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-text-light mb-2">
             Welcome Back
           </h1>
-          <p className="text-text-light/70">
-            Log in to your Hearo account
-          </p>
+          <p className="text-text-light/70">Log in to your Hearo account</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">

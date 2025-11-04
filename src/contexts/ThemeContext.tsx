@@ -12,16 +12,20 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  // Check localStorage immediately to prevent flash
+  const getInitialTheme = (): Theme => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("hearo-theme") as Theme;
+      return savedTheme || "light";
+    }
+    return "light";
+  };
+
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Load saved preference or default to light
-    const savedTheme = localStorage.getItem("hearo-theme") as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
   }, []);
 
   useEffect(() => {
