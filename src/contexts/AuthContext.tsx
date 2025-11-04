@@ -72,6 +72,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Error fetching profile:", error);
       } else {
         setProfile(data);
+        
+        // Apply user's theme preference if available
+        if (data?.theme_preference) {
+          localStorage.setItem("hearo-theme", data.theme_preference);
+          // Trigger theme update
+          window.dispatchEvent(new Event("storage"));
+        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error);

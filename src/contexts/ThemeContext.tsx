@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 type Theme = "light" | "dark";
 
@@ -22,6 +23,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       setTheme(savedTheme);
     }
+
+    // Listen for storage events (when theme is loaded from profile)
+    const handleStorageChange = () => {
+      const newTheme = localStorage.getItem("hearo-theme") as Theme;
+      if (newTheme && newTheme !== theme) {
+        setTheme(newTheme);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -52,8 +64,25 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       root.classList.add("dark");
     }
 
-    // Save preference
+    // Save preference to localStorage
     localStorage.setItem("hearo-theme", theme);
+
+    // Save preference to database if user is logged in
+    const saveThemeToDatabase = async () => {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from("profiles")
+          .update({ theme_preference: theme })
+          .eq("id", user.id);
+      }
+    };
+
+    saveThemeToDatabase();
   }, [theme, mounted]);
 
   const toggleTheme = () => {
