@@ -73,12 +73,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(data);
         
-        // Apply user's theme preference if available
-        if (data?.theme_preference) {
-          localStorage.setItem("hearo-theme", data.theme_preference);
-          // Trigger theme update with custom event
-          window.dispatchEvent(new CustomEvent("themeChange", { detail: data.theme_preference }));
-        }
+        // Apply user's theme preference if available (always override current theme)
+        const userTheme = data?.theme_preference || "light";
+        localStorage.setItem("hearo-theme", userTheme);
+        
+        // Trigger theme update with custom event (use setTimeout to ensure ThemeContext is ready)
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("themeChange", { detail: userTheme }));
+        }, 0);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -170,17 +172,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Sign out error:", error);
       }
 
-      // Save theme preference before clearing storage
-      const savedTheme = localStorage.getItem("hearo-theme");
-
-      // Force clear all browser storage
+      // Force clear all browser storage (including theme)
       localStorage.clear();
       sessionStorage.clear();
 
-      // Restore theme preference
-      if (savedTheme) {
-        localStorage.setItem("hearo-theme", savedTheme);
-      }
+      // Reset to default light theme after sign out
+      localStorage.setItem("hearo-theme", "light");
+      window.dispatchEvent(new CustomEvent("themeChange", { detail: "light" }));
 
       // Force redirect to login
       window.location.href = "/login";
