@@ -64,7 +64,16 @@ export default function BookLibrary() {
 
   const fetchPublishedBooks = async () => {
     try {
-      const response = await fetch("/api/public/books");
+      // Add 5 second timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
+      const response = await fetch("/api/public/books", {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeout);
+
       if (response.ok) {
         const data = await response.json();
         const published = new Set<string>(
@@ -73,7 +82,11 @@ export default function BookLibrary() {
         setPublishedBooks(published);
       }
     } catch (error) {
-      console.error("Failed to fetch published books:", error);
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("Failed to fetch published books:", error);
+      }
+      // Set empty set on timeout or error
+      setPublishedBooks(new Set());
     }
   };
 
@@ -92,11 +105,18 @@ export default function BookLibrary() {
         return;
       }
 
+      // Add 5 second timeout
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
       const response = await fetch("/api/books", {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
       console.log("Books response status:", response.status);
 
       if (response.ok) {
@@ -111,7 +131,11 @@ export default function BookLibrary() {
         );
       }
     } catch (error) {
-      console.error("Failed to fetch books:", error);
+      if (error instanceof Error && error.name !== "AbortError") {
+        console.error("Failed to fetch books:", error);
+      }
+      // Set empty array on timeout or error
+      setBooks([]);
     } finally {
       setLoading(false);
     }
