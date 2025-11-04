@@ -6,6 +6,7 @@ export default {
       colors: {
         background: "#171718ff",
         surface: "#1d1e1fff",
+        "surface-light": "#2a2b2cff",
         accent: "#d4a574", // Warm amber/gold
         "text-light": "#ffffffff",
       },

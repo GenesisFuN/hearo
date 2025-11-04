@@ -5,6 +5,7 @@
   :root {
     --color-background: #171718ff;
     --color-surface: #1d1e1fff;
+    --color-surface-light: #2a2b2cff;
     --color-accent: #d4a574; /* Warm amber/gold */
     --color-text-light: #ffffffff;
   }
@@ -20,6 +21,9 @@
   }
   .bg-surface {
     background-color: var(--color-surface);
+  }
+  .bg-surface-light {
+    background-color: var(--color-surface-light);
   }
   .bg-surface\/90 {
     background-color: color-mix(in srgb, var(--color-surface) 90%, transparent);
@@ -79,6 +83,9 @@
   }
   .border-surface {
     border-color: var(--color-surface);
+  }
+  .border-surface-light {
+    border-color: var(--color-surface-light);
   }
   .border-surface\/40 {
     border-color: color-mix(in srgb, var(--color-surface) 40%, transparent);
