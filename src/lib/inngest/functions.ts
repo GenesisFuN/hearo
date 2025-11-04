@@ -1,7 +1,11 @@
 import { inngest } from "./client";
 import { createClient } from "@supabase/supabase-js";
 
-const COQUI_URL = process.env.COQUI_SERVER_URL || "http://localhost:8000";
+const RUNPOD_ENDPOINT_ID = process.env.RUNPOD_ENDPOINT_ID;
+const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY;
+const RUNPOD_URL = RUNPOD_ENDPOINT_ID
+  ? `https://api.runpod.ai/v2/${RUNPOD_ENDPOINT_ID}/runsync`
+  : null;
 
 // Calculate duration from WAV file header
 function calculateWavDuration(buffer: ArrayBuffer): number {
@@ -61,32 +65,47 @@ export const processTTSJob = inngest.createFunction(
           .update({ progress_percent: progressPercent })
           .eq("id", workId);
 
-        // Call Coqui TTS
-        console.log(`   🎙️ Calling Coqui TTS server...`);
-        const response = await fetch(`${COQUI_URL}/generate`, {
+        // Call RunPod TTS
+        console.log(`   🎙️ Calling RunPod TTS server...`);
+
+        if (!RUNPOD_URL || !RUNPOD_API_KEY) {
+          throw new Error(
+            "RunPod configuration missing. Please set RUNPOD_ENDPOINT_ID and RUNPOD_API_KEY environment variables."
+          );
+        }
+
+        const response = await fetch(RUNPOD_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${RUNPOD_API_KEY}`,
+          },
           body: JSON.stringify({
-            text: chapter.text,
-            voice_id: voiceSettings.voiceId,
-            language: voiceSettings.language || "en",
-            temperature: voiceSettings.temperature || 0.5,
-            speed: voiceSettings.speed || 0.92,
-            speaker: voiceSettings.speaker || "Claribel Dervla",
-            denoiser_strength: voiceSettings.denoiserStrength || 0.02,
+            input: {
+              text: chapter.text,
+              language: voiceSettings.language || "en",
+              speed: voiceSettings.speed || 0.92,
+              // Optional: voice_file_base64 for voice cloning
+            },
           }),
         });
 
         if (!response.ok) {
           const errorText = await response.text();
           throw new Error(
-            `Coqui TTS error: ${response.status} ${response.statusText} - ${errorText}`
+            `RunPod TTS error: ${response.status} ${response.statusText} - ${errorText}`
           );
         }
 
-        const audioArrayBuffer = await response.arrayBuffer();
-        const audioBuffer = Buffer.from(audioArrayBuffer);
-        const duration = calculateWavDuration(audioArrayBuffer);
+        const result = await response.json();
+
+        // RunPod returns audio as base64 in result.output.audio_base64
+        if (!result.output || !result.output.audio_base64) {
+          throw new Error("RunPod response missing audio data");
+        }
+
+        const audioBuffer = Buffer.from(result.output.audio_base64, "base64");
+        const duration = calculateWavDuration(audioBuffer.buffer);
 
         console.log(`   ✅ Generated ${audioBuffer.byteLength} bytes`);
         console.log(`   ⏱️ Duration: ${formatDuration(duration)}`);
@@ -163,7 +182,7 @@ export const processTTSJob = inngest.createFunction(
         duration_seconds: Math.floor(totalDuration),
         mime_type: "audio/wav",
         is_generated: true,
-        tts_provider: "coqui",
+        tts_provider: "runpod",
         storage_bucket: "audiobooks",
         storage_path: uploadData.path,
       });
