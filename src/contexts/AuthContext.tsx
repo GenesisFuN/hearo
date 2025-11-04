@@ -172,13 +172,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Sign out error:", error);
       }
 
-      // Force clear all browser storage (including theme)
+      // Force clear all browser storage
       localStorage.clear();
       sessionStorage.clear();
 
-      // Reset to default light theme after sign out
-      localStorage.setItem("hearo-theme", "light");
-      window.dispatchEvent(new CustomEvent("themeChange", { detail: "light" }));
+      // Set theme based on system preference after sign out
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const systemTheme = prefersDark ? 'dark' : 'light';
+      localStorage.setItem("hearo-theme", systemTheme);
+      window.dispatchEvent(new CustomEvent("themeChange", { detail: systemTheme }));
 
       // Force redirect to login
       window.location.href = "/login";
