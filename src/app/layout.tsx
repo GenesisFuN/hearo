@@ -20,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <head>
+    <html lang="en" suppressHydrationWarning>
+      <body className="bg-background text-text-light font-sans min-h-screen flex flex-col">
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -54,8 +54,6 @@ export default function RootLayout({
             `,
           }}
         />
-      </head>
-      <body className="bg-background text-text-light font-sans min-h-screen flex flex-col">
         <ErrorBoundary>
           <ToastProvider>
             <ThemeProvider>
