@@ -124,7 +124,7 @@ export default function LibraryPage() {
         setSavedBooks(data.books || []);
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== "AbortError") {
         console.error("Failed to fetch saved books:", error);
       }
       // Set empty array on timeout or error
@@ -156,7 +156,7 @@ export default function LibraryPage() {
         setFollowingBooks(data.books || []);
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== "AbortError") {
         console.error("Failed to fetch following books:", error);
       }
       // Set empty array on timeout or error
@@ -187,7 +187,7 @@ export default function LibraryPage() {
         setPlaylists(data.playlists || []);
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== "AbortError") {
         console.error("Failed to fetch playlists:", error);
       }
       // Set empty array on timeout or error
@@ -222,7 +222,7 @@ export default function LibraryPage() {
         console.error("Continue Listening fetch failed:", response.status);
       }
     } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
+      if (error instanceof Error && error.name !== "AbortError") {
         console.error("Failed to fetch continue listening:", error);
       }
       // Set empty array on timeout or error
