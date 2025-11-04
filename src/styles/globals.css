@@ -12,9 +12,9 @@
     --color-highlight: #d4a574;
   }
 
+  /* Dark mode via media query OR .dark class */
   @media (prefers-color-scheme: dark) {
     :root {
-      /* Dark mode colors */
       --color-background: #171718ff;
       --color-surface: #1d1e1fff;
       --color-surface-light: #2a2b2cff;
@@ -22,6 +22,15 @@
       --color-text-light: #ffffffff;
       --color-highlight: #d4a574;
     }
+  }
+
+  .dark {
+    --color-background: #171718ff;
+    --color-surface: #1d1e1fff;
+    --color-surface-light: #2a2b2cff;
+    --color-accent: #d4a574; /* Warm amber/gold */
+    --color-text-light: #ffffffff;
+    --color-highlight: #d4a574;
   }
 }
 

@@ -21,6 +21,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const darkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (darkMode) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className="bg-background text-text-light font-sans min-h-screen flex flex-col">
         <ErrorBoundary>
           <ToastProvider>
