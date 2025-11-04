@@ -106,8 +106,11 @@ export async function POST(request: NextRequest) {
 
       const result = await response.json();
 
+      console.log(`   📦 RunPod response:`, JSON.stringify(result).substring(0, 200));
+
       // RunPod returns audio as base64 in result.output.audio_base64
       if (!result.output || !result.output.audio_base64) {
+        console.error(`   ❌ Missing audio data in response:`, result);
         throw new Error("RunPod response missing audio data");
       }
 
@@ -215,6 +218,29 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("TTS processing error:", error);
+    console.error("Error stack:", error.stack);
+    
+    // Update work to show error
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+      
+      const { workId, userId } = await request.json();
+      if (workId) {
+        await supabase
+          .from("works")
+          .update({
+            status: "failed",
+            progress_percent: 0,
+          })
+          .eq("id", workId);
+      }
+    } catch (updateError) {
+      console.error("Failed to update work status:", updateError);
+    }
+    
     return NextResponse.json(
       {
         error: "TTS processing failed",

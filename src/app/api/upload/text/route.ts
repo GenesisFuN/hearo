@@ -373,22 +373,25 @@ export async function POST(request: NextRequest) {
       const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       // Call TTS processing endpoint in background (don't await)
-      fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://hearo-zeta.vercel.app'}/api/tts/process`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          workId: work.id,
-          userId: user.id,
-          chapters: chunks.map((text, index) => ({
-            chapterId: `chapter-${index + 1}`,
-            text,
-            title: `Chapter ${index + 1}`,
-          })),
-          voiceSettings,
-        }),
-      }).catch((err) => {
+      fetch(
+        `${process.env.NEXT_PUBLIC_SITE_URL || "https://hearo-zeta.vercel.app"}/api/tts/process`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            workId: work.id,
+            userId: user.id,
+            chapters: chunks.map((text, index) => ({
+              chapterId: `chapter-${index + 1}`,
+              text,
+              title: `Chapter ${index + 1}`,
+            })),
+            voiceSettings,
+          }),
+        }
+      ).catch((err) => {
         console.error("Background TTS processing error:", err);
       });
 
