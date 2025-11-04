@@ -34,8 +34,8 @@ export default function SignUpPage() {
       // Check if user was auto-confirmed (email confirmation disabled)
       // In this case, user.email_confirmed_at will be set
       if (result?.session) {
-        // User is auto-confirmed and logged in, redirect to dashboard
-        router.push("/dashboard");
+        // User is auto-confirmed and logged in, redirect to home
+        router.push("/");
         router.refresh();
       } else {
         // Email confirmation required, show success message
@@ -53,9 +53,14 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 px-4">
       <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="text-5xl font-display font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Hearo
+            </div>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Join Hearo
           </h1>

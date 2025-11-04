@@ -63,16 +63,16 @@ export default function AnalyticsView() {
       }
 
       const daysParam = timeRange === "all" ? "10000" : timeRange;
-      
+
       // Add 8 second timeout
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 8000);
-      
+
       const response = await fetch(`/api/analytics?days=${daysParam}`, {
         headers: { Authorization: `Bearer ${token}` },
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeout);
 
       if (response.ok) {
@@ -80,8 +80,8 @@ export default function AnalyticsView() {
         setAnalytics(data);
       }
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Analytics fetch timed out - showing empty state');
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("Analytics fetch timed out - showing empty state");
       } else {
         console.error("Failed to fetch analytics:", error);
       }

@@ -93,12 +93,12 @@ export default function LibraryPage() {
           fetchPlaylists(),
           fetchContinueListening(),
         ]),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Loading timeout')), 10000)
-        )
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Loading timeout")), 10000)
+        ),
       ]);
     } catch (error) {
-      console.error('Error loading library data:', error);
+      console.error("Error loading library data:", error);
       // Continue anyway - empty states will show
     } finally {
       setLoading(false);
