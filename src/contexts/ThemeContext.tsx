@@ -24,16 +24,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme(savedTheme);
     }
 
-    // Listen for storage events (when theme is loaded from profile)
-    const handleStorageChange = () => {
-      const newTheme = localStorage.getItem("hearo-theme") as Theme;
+    // Listen for theme changes (when user signs in and theme is loaded from profile)
+    const handleThemeChange = (event: Event) => {
+      const customEvent = event as CustomEvent<Theme>;
+      const newTheme = customEvent.detail;
       if (newTheme && newTheme !== theme) {
         setTheme(newTheme);
       }
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener("themeChange", handleThemeChange);
+    return () => window.removeEventListener("themeChange", handleThemeChange);
   }, []);
 
   useEffect(() => {

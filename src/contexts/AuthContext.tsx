@@ -76,8 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Apply user's theme preference if available
         if (data?.theme_preference) {
           localStorage.setItem("hearo-theme", data.theme_preference);
-          // Trigger theme update
-          window.dispatchEvent(new Event("storage"));
+          // Trigger theme update with custom event
+          window.dispatchEvent(new CustomEvent("themeChange", { detail: data.theme_preference }));
         }
       }
     } catch (error) {
