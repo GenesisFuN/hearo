@@ -17,7 +17,7 @@ export default function SubscriptionGate({
   const { user, profile, hasSubscription } = useAuth();
   const [showUpgrade, setShowUpgrade] = useState(false);
 
-  // TEMPORARY: Disable subscription paywall for development
+  // TEMPORARY: Disable subscription paywall for beta testing
   const DISABLE_PAYWALL = true;
 
   if (!user) {
@@ -137,16 +137,7 @@ export default function SubscriptionGate({
     );
   }
 
-  return (
-    <>
-      {DISABLE_PAYWALL && (
-        <div className="bg-yellow-500/20 border border-yellow-500/50 text-yellow-300 px-4 py-2 text-sm text-center">
-          🚧 Development Mode: Subscription paywall temporarily disabled
-        </div>
-      )}
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }
 
 function AuthPrompt() {

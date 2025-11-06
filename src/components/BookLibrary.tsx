@@ -44,19 +44,6 @@ export default function BookLibrary() {
   const { setCurrentTrack, currentTrack, playTrack, isPlaying } = usePlayer();
   const { user, loading: authLoading } = useAuth();
 
-  // Debug: Test the player context
-  const testPlayer = () => {
-    console.log("Testing player with sample track...");
-    playTrack({
-      id: "test-track",
-      title: "Test Audio",
-      artist: "Test Artist",
-      src: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-      duration: 0,
-      cover: "/placeholder-cover.jpg",
-    });
-  };
-
   useEffect(() => {
     fetchBooks();
     fetchPublishedBooks();
@@ -671,54 +658,6 @@ export default function BookLibrary() {
               </button>
             )
           )}
-        </div>
-      </div>
-
-      {/* Debug Section */}
-      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
-        <h3 className="text-sm font-bold text-yellow-400 mb-2">Debug Info</h3>
-        <div className="text-xs text-text-light/70 space-y-1">
-          <div>
-            Authentication:{" "}
-            {authLoading
-              ? "Loading..."
-              : user
-                ? `Signed in as ${user.email}`
-                : "Not signed in"}
-          </div>
-          <div>Current Track: {currentTrack ? currentTrack.title : "None"}</div>
-          <div>Books Count: {books.length}</div>
-          <div>
-            Complete Books:{" "}
-            {
-              books.filter((b) => b.status === "published" && b.audioPath)
-                .length
-            }
-          </div>
-          <div>Published Books: {publishedBooks.size}</div>
-          {books
-            .filter((b) => b.status === "published" && b.audioPath)
-            .slice(0, 1)
-            .map((book) => (
-              <div key={book.id} className="border-t border-yellow-500/20 pt-2">
-                <div>Sample Audio Path: {book.audioPath}</div>
-                <a
-                  href={book.audioPath}
-                  target="_blank"
-                  className="text-yellow-400 underline"
-                >
-                  Test Direct Link
-                </a>
-              </div>
-            ))}
-          <div className="flex gap-2 pt-2">
-            <button
-              onClick={testPlayer}
-              className="bg-yellow-500 text-black px-2 py-1 rounded text-xs hover:bg-yellow-400"
-            >
-              Test Player
-            </button>
-          </div>
         </div>
       </div>
 
