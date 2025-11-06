@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
     // Disable TypeScript errors during production builds
     ignoreBuildErrors: true,
   },
+  // Explicitly expose server-side env variables
+  env: {
+    MODERATION_API_KEY: process.env.MODERATION_API_KEY,
+  },
 };
 
 export default nextConfig;

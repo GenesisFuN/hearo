@@ -35,6 +35,8 @@ export default function BookLibrary() {
     "all" | "text" | "audio" | "processing" | "complete"
   >("all");
   const [genreDialogOpen, setGenreDialogOpen] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState<string>("");
   const [bookToPublish, setBookToPublish] = useState<Book | null>(null);
   const [publishedBooks, setPublishedBooks] = useState<Set<string>>(new Set());
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -302,8 +304,29 @@ export default function BookLibrary() {
   const confirmPublish = async (genre: string) => {
     if (!bookToPublish) return;
 
+    // Store the genre and close genre dialog
+    setSelectedGenre(genre);
+    setGenreDialogOpen(false);
+
+    // Show terms modal immediately (don't clear bookToPublish)
+    setTermsModalOpen(true);
+  };
+
+  const handleCancelGenreSelection = () => {
+    setGenreDialogOpen(false);
+    setBookToPublish(null);
+  };
+
+  const handleAcceptTermsAndPublish = async () => {
+    if (!bookToPublish || !selectedGenre) return;
+
     try {
-      console.log("Publishing book:", bookToPublish.id, "Genre:", genre);
+      console.log(
+        "Publishing book:",
+        bookToPublish.id,
+        "Genre:",
+        selectedGenre
+      );
 
       // Get current session for authentication
       const {
@@ -331,7 +354,7 @@ export default function BookLibrary() {
           bookId: bookToPublish.id,
           title: bookToPublish.title,
           audioPath: bookToPublish.audioPath,
-          genre: genre,
+          genre: selectedGenre,
         }),
       });
 
@@ -342,19 +365,28 @@ export default function BookLibrary() {
         // Add to local published books set
         setPublishedBooks((prev) => new Set(prev).add(bookToPublish.id));
 
+        // Save title before clearing state
+        const publishedTitle = bookToPublish.title;
+
+        // Close modal and reset state BEFORE showing alert
+        setTermsModalOpen(false);
+        setSelectedGenre("");
+        setBookToPublish(null);
+
         // Copy share URL to clipboard
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(result.shareUrl);
           alert(
-            `"${bookToPublish.title}" has been published!\n\nShare URL copied to clipboard:\n${result.shareUrl}`
+            `"${publishedTitle}" has been published!\n\nShare URL copied to clipboard:\n${result.shareUrl}`
           );
         } else {
           // Fallback for browsers without clipboard API
           prompt(
-            `"${bookToPublish.title}" has been published! Copy this share URL:`,
+            `"${publishedTitle}" has been published! Copy this share URL:`,
             result.shareUrl
           );
         }
+        return; // Exit early after success
       } else {
         let errorMessage = "Unknown error occurred";
         try {
@@ -382,6 +414,14 @@ export default function BookLibrary() {
     }
 
     // Reset state
+    setTermsModalOpen(false);
+    setSelectedGenre("");
+    setBookToPublish(null);
+  };
+
+  const handleDeclineTerms = () => {
+    setTermsModalOpen(false);
+    setSelectedGenre("");
     setBookToPublish(null);
   };
 
@@ -950,13 +990,112 @@ export default function BookLibrary() {
 
       <GenreSelectionDialog
         isOpen={genreDialogOpen}
-        onClose={() => {
-          setGenreDialogOpen(false);
-          setBookToPublish(null);
-        }}
+        onClose={handleCancelGenreSelection}
         onConfirm={confirmPublish}
         bookTitle={bookToPublish?.title || ""}
       />
+
+      {/* Terms Agreement Modal */}
+      {termsModalOpen && bookToPublish && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+          onClick={(e) => e.target === e.currentTarget && handleDeclineTerms()}
+        >
+          <div
+            className="bg-surface rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-accent/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-background/50 p-6 border-b border-accent/20">
+              <h2 className="text-2xl font-bold text-text-light mb-2">
+                Terms of Service Agreement
+              </h2>
+              <p className="text-text-light/70">
+                Please review and accept our terms before publishing
+              </p>
+            </div>
+
+            {/* Modal Content - Scrollable */}
+            <div className="p-6 overflow-y-auto max-h-[60vh] text-text-light/80 space-y-4">
+              <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mb-4">
+                <p className="font-medium text-text-light mb-2">
+                  📚 You are about to publish:
+                </p>
+                <p className="text-lg font-semibold text-text-light">
+                  "{bookToPublish.title}"
+                </p>
+                <p className="text-sm text-text-light/70 mt-1">
+                  Genre: {selectedGenre}
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-semibold text-text-light text-lg">
+                  By clicking "I Agree - Publish", you certify that:
+                </h3>
+                <ul className="space-y-2 list-disc list-inside">
+                  <li>
+                    You own or have the necessary rights to upload, publish, and
+                    distribute this content
+                  </li>
+                  <li>
+                    Your content does not infringe upon the intellectual
+                    property rights, privacy rights, or any other rights of any
+                    third party
+                  </li>
+                  <li>
+                    Your content does not contain copyrighted material without
+                    proper authorization
+                  </li>
+                  <li>
+                    Your content does not contain explicit, pornographic, or
+                    age-inappropriate material
+                  </li>
+                  <li>
+                    Your content does not promote hate speech, violence, or
+                    discrimination
+                  </li>
+                  <li>
+                    You understand that violations may result in account
+                    suspension or termination
+                  </li>
+                </ul>
+
+                <div className="bg-background/50 rounded p-4 mt-4">
+                  <p className="text-sm">
+                    For full terms and conditions, including our DMCA policy,
+                    please review our{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      className="text-accent hover:underline font-medium"
+                    >
+                      Terms of Service
+                    </a>
+                    .
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-background/50 p-6 border-t border-accent/20 flex gap-3 justify-end">
+              <button
+                onClick={handleDeclineTerms}
+                className="px-6 py-2 rounded-lg font-medium transition bg-surface hover:bg-surface/80 text-text-light border border-accent/30"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAcceptTermsAndPublish}
+                className="px-6 py-2 rounded-lg font-medium transition bg-accent hover:bg-accent/80 text-background"
+              >
+                I Agree - Publish Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {bookToEdit && (
         <EditBookModal

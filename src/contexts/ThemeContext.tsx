@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 type Theme = "light" | "dark";
@@ -15,6 +15,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
+  const isManualToggle = useRef(false);
 
   useEffect(() => {
     setMounted(true);
@@ -26,10 +27,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for theme changes (when user signs in and theme is loaded from profile)
     const handleThemeChange = (event: Event) => {
+      // Ignore event if user is manually toggling
+      if (isManualToggle.current) return;
+      
       const customEvent = event as CustomEvent<Theme>;
       const newTheme = customEvent.detail;
       if (newTheme) {
-        // Always apply the new theme from the event (don't check current theme)
         setTheme(newTheme);
       }
     };
@@ -90,7 +93,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, mounted]);
 
   const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    isManualToggle.current = true;
+    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
+    // Reset manual toggle flag after theme has been applied
+    setTimeout(() => {
+      isManualToggle.current = false;
+    }, 500);
   };
 
   return (

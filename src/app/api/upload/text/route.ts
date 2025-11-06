@@ -10,6 +10,7 @@ import { splitTextIntoChunks } from "../../../../lib/elevenlabs";
 import { TTSQueue } from "../../../../lib/queue";
 import { getPriorityForUser } from "../../../../lib/queue/types";
 import { AppError, ErrorCodes, logError } from "@/lib/errorHandling";
+import { moderateTextWithLogging } from "@/lib/moderation";
 
 // Type definition for subscription (kept for getUserSubscription)
 type UserSubscription = {
@@ -175,11 +176,14 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const aiSettings = formData.get("aiSettings") as string;
+    const agreedToTerms = formData.get("agreedToTerms") === "true";
 
     console.log(
       "File received:",
       file ? file.name : "null",
-      file ? file.type : "null"
+      file ? file.type : "null",
+      "Terms agreed:",
+      agreedToTerms
     );
 
     if (!file) {
@@ -189,6 +193,19 @@ export async function POST(request: NextRequest) {
           error: "No file provided",
           code: ErrorCodes.MISSING_REQUIRED_FIELD,
           userMessage: "Please select a file to upload.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!agreedToTerms) {
+      console.error("Terms not accepted");
+      return NextResponse.json(
+        {
+          error: "Terms of Service must be accepted",
+          code: ErrorCodes.MISSING_REQUIRED_FIELD,
+          userMessage:
+            "You must agree to the Terms of Service to upload content.",
         },
         { status: 400 }
       );
@@ -219,6 +236,32 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const textContent = buffer.toString("utf-8");
+
+    // Moderate content using OpenAI
+    console.log("🛡️ Running content moderation...");
+    const moderationResult = await moderateTextWithLogging(
+      textContent,
+      user.id,
+      "book"
+    );
+
+    if (moderationResult.flagged) {
+      console.warn("Content blocked by moderation:", moderationResult.reason);
+      return NextResponse.json(
+        {
+          error: "Content moderation failed",
+          code: ErrorCodes.INVALID_INPUT,
+          userMessage:
+            moderationResult.reason ||
+            "This content violates our content policy and cannot be uploaded.",
+          details: moderationResult.blockedCategories,
+          hint: "Please review our Terms of Service for acceptable content guidelines.",
+        },
+        { status: 400 }
+      );
+    }
+
+    console.log("✅ Content passed moderation");
 
     // Skip duplicate check - allow users to upload same content
     // (they might want different versions or experiments)
@@ -307,6 +350,30 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("✅ Work saved to database:", work.id);
+
+    // Log terms agreement
+    const userAgent = request.headers.get("user-agent") || "unknown";
+    const ipAddress =
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+
+    const { error: agreementError } = await adminClient
+      .from("content_agreements")
+      .insert({
+        user_id: user.id,
+        work_id: work.id,
+        ip_address: ipAddress,
+        user_agent: userAgent,
+        terms_version: "1.0",
+      });
+
+    if (agreementError) {
+      console.error("Error logging content agreement:", agreementError);
+      // Don't fail the upload if agreement logging fails, just log it
+    } else {
+      console.log("✅ Content agreement logged");
+    }
 
     // Save upload record using admin client
     const { error: uploadRecordError } = await adminClient

@@ -23,8 +23,8 @@ export default function GenreSelectionDialog({
       alert("Please select a genre");
       return;
     }
+    // Just call onConfirm - let parent handle closing
     onConfirm(selectedGenre);
-    onClose();
   };
 
   return (

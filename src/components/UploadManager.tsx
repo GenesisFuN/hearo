@@ -159,6 +159,7 @@ export default function UploadManager() {
   };
 
   const handleFiles = (files: FileList) => {
+    // Directly process files without modal
     Array.from(files).forEach((file) => {
       const uploadFile: UploadFile = {
         id: Date.now().toString() + Math.random(),
@@ -190,6 +191,7 @@ export default function UploadManager() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("aiSettings", JSON.stringify(settingsToUse));
+    formData.append("agreedToTerms", "true"); // User must check box to upload
 
     try {
       // Simulate progress for now (in production, use axios for progress tracking)
