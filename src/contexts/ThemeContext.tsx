@@ -29,7 +29,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const handleThemeChange = (event: Event) => {
       // Ignore event if user is manually toggling
       if (isManualToggle.current) return;
-      
+
       const customEvent = event as CustomEvent<Theme>;
       const newTheme = customEvent.detail;
       if (newTheme) {

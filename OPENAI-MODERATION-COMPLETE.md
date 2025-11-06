@@ -233,11 +233,13 @@ MODERATION_API_KEY=sk-proj-your-key-here
 ### Rate Limits
 
 OpenAI Moderation API is free but has rate limits:
+
 - **Free Tier:** ~60 requests/minute, ~1000/day
 - **Production:** Monitor usage at https://platform.openai.com/usage
 - **Fail-Open Design:** If rate limited, uploads still work (just skip moderation)
 
 For high-volume production:
+
 1. Add billing/payment method to OpenAI account for higher limits
 2. Or implement request queuing with delays
 3. Or cache moderation results for similar content
