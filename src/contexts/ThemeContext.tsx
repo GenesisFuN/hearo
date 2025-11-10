@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useRef } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 type Theme = "light" | "dark";
@@ -8,72 +8,48 @@ type Theme = "light" | "dark";
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
-  const isManualToggle = useRef(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("hearo-theme") as Theme | null;
+      return saved || "light";
+    }
+    return "light";
+  });
 
   useEffect(() => {
     setMounted(true);
-    // Load saved preference or default to light
-    const savedTheme = localStorage.getItem("hearo-theme") as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-
-    // Listen for theme changes (when user signs in and theme is loaded from profile)
-    const handleThemeChange = (event: Event) => {
-      // Ignore event if user is manually toggling
-      if (isManualToggle.current) return;
-
-      const customEvent = event as CustomEvent<Theme>;
-      const newTheme = customEvent.detail;
-      if (newTheme) {
-        setTheme(newTheme);
-      }
-    };
-
-    window.addEventListener("themeChange", handleThemeChange);
-    return () => window.removeEventListener("themeChange", handleThemeChange);
   }, []);
 
-  useEffect(() => {
-    if (!mounted) return;
+  const toggleTheme = async () => {
+    const currentThemeFromDOM = document.documentElement.classList.contains(
+      "dark"
+    )
+      ? "dark"
+      : "light";
+    const newTheme: Theme = currentThemeFromDOM === "dark" ? "light" : "dark";
 
-    // Apply Mocha theme colors based on light/dark mode
-    const root = document.documentElement;
+    // Update localStorage
+    localStorage.setItem("hearo-theme", newTheme);
 
-    if (theme === "light") {
-      // Light Mocha Theme
-      root.style.setProperty("--color-background", "hsl(35, 35%, 92%)"); // Warm light cream
-      root.style.setProperty("--color-surface", "hsl(35, 30%, 85%)"); // Slightly darker cream
-      root.style.setProperty("--color-surface-light", "hsl(35, 25%, 78%)"); // Even lighter
-      root.style.setProperty("--color-accent", "hsl(25, 50%, 45%)"); // Rich mocha/chocolate
-      root.style.setProperty("--color-text", "hsl(30, 25%, 20%)"); // Dark brown text
-      root.style.setProperty("--color-text-light", "hsl(30, 25%, 20%)"); // Dark brown text
-      root.style.setProperty("--color-highlight", "hsl(345, 65%, 75%)"); // More vibrant soft pink
-      root.classList.remove("dark");
+    // Update DOM immediately
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      // Dark Mocha Theme
-      root.style.setProperty("--color-background", "hsl(30, 15%, 12%)"); // Deep chocolate brown
-      root.style.setProperty("--color-surface", "hsl(30, 12%, 18%)"); // Lighter brown
-      root.style.setProperty("--color-surface-light", "hsl(30, 10%, 24%)"); // Even lighter
-      root.style.setProperty("--color-accent", "hsl(40, 55%, 70%)"); // Warm cream/gold
-      root.style.setProperty("--color-text", "hsl(35, 25%, 88%)"); // Warm off-white
-      root.style.setProperty("--color-text-light", "hsl(35, 25%, 88%)"); // Warm off-white
-      root.style.setProperty("--color-highlight", "hsl(270, 70%, 65%)"); // Vibrant purple
-      root.classList.add("dark");
+      document.documentElement.classList.remove("dark");
     }
 
-    // Save preference to localStorage
-    localStorage.setItem("hearo-theme", theme);
+    // Update state
+    setTheme(newTheme);
 
-    // Save preference to database if user is logged in
-    const saveThemeToDatabase = async () => {
+    // Save to database if user is logged in (async, doesn't block)
+    try {
       const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
       const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
       const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -81,28 +57,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+
       if (user) {
         await supabase
           .from("profiles")
-          .update({ theme_preference: theme })
+          .update({ theme_preference: newTheme })
           .eq("id", user.id);
       }
-    };
-
-    saveThemeToDatabase();
-  }, [theme, mounted]);
-
-  const toggleTheme = () => {
-    isManualToggle.current = true;
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-    // Reset manual toggle flag after theme has been applied
-    setTimeout(() => {
-      isManualToggle.current = false;
-    }, 500);
+    } catch (error) {
+      console.error("Failed to save theme to database:", error);
+    }
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
       {children}
     </ThemeContext.Provider>
   );

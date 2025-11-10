@@ -4,7 +4,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Moon, Sun } from "lucide-react";
 
 export default function SettingsPage() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, mounted } = useTheme();
 
   return (
     <div className="min-h-screen px-8 py-24">
@@ -36,7 +36,15 @@ export default function SettingsPage() {
                 onClick={toggleTheme}
                 className="flex items-center gap-3 px-6 py-3 bg-accent/20 hover:bg-accent/30 rounded-lg transition border-2 border-highlight/30 hover:border-highlight"
               >
-                {theme === "dark" ? (
+                {!mounted ? (
+                  // Show placeholder during hydration to avoid mismatch
+                  <>
+                    <div className="w-6 h-6" />
+                    <span className="text-accent font-medium text-lg">
+                      Loading...
+                    </span>
+                  </>
+                ) : theme === "dark" ? (
                   <>
                     <Moon className="w-6 h-6 text-accent" />
                     <span className="text-accent font-medium text-lg">
@@ -62,9 +70,11 @@ export default function SettingsPage() {
               <p className="text-text-light/70 mb-4">
                 This is how your text will look with the current theme. The
                 Mocha palette features warm{" "}
-                {theme === "dark"
-                  ? "chocolate browns with cream accents"
-                  : "cream backgrounds with rich mocha accents"}
+                {!mounted
+                  ? "colors"
+                  : theme === "dark"
+                    ? "chocolate browns with cream accents"
+                    : "cream backgrounds with rich mocha accents"}
                 .
               </p>
               <div className="flex gap-3">

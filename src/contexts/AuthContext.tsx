@@ -73,16 +73,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(data);
 
-        // Apply user's theme preference if available (always override current theme)
-        const userTheme = data?.theme_preference || "light";
-        localStorage.setItem("hearo-theme", userTheme);
-
-        // Trigger theme update with custom event (use setTimeout to ensure ThemeContext is ready)
-        setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent("themeChange", { detail: userTheme })
+        // Only apply database theme preference if localStorage is empty (first time)
+        // Otherwise, localStorage is the source of truth
+        const currentLocalTheme = localStorage.getItem("hearo-theme");
+        if (!currentLocalTheme && data?.theme_preference) {
+          console.log(
+            "[AUTH] No local theme found, applying database theme:",
+            data.theme_preference
           );
-        }, 0);
+          localStorage.setItem("hearo-theme", data.theme_preference);
+
+          // Trigger theme update with custom event
+          setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent("themeChange", { detail: data.theme_preference })
+            );
+          }, 0);
+        } else {
+          console.log(
+            "[AUTH] Local theme exists, keeping it:",
+            currentLocalTheme
+          );
+        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error);

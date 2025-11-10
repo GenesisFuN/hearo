@@ -2,14 +2,26 @@
 
 /* Define custom colors directly in CSS for Tailwind v4 */
 @layer base {
-  /* Light mode by default (will be overridden by ThemeContext) */
+  /* Light mode colors */
   :root {
     --color-background: hsl(35, 35%, 92%);
     --color-surface: hsl(35, 30%, 85%);
     --color-surface-light: hsl(35, 25%, 78%);
     --color-accent: hsl(25, 50%, 45%);
+    --color-text: hsl(30, 25%, 20%);
     --color-text-light: hsl(30, 25%, 20%);
     --color-highlight: hsl(345, 65%, 75%);
+  }
+
+  /* Dark mode colors */
+  .dark {
+    --color-background: hsl(30, 15%, 12%);
+    --color-surface: hsl(30, 12%, 18%);
+    --color-surface-light: hsl(30, 10%, 24%);
+    --color-accent: hsl(40, 55%, 70%);
+    --color-text: hsl(35, 25%, 88%);
+    --color-text-light: hsl(35, 25%, 88%);
+    --color-highlight: hsl(270, 70%, 65%);
   }
 }
 

@@ -69,39 +69,42 @@ export default function UploadManager() {
   ];
   */
 
-  // Coqui TTS (XTTS v2) - Default speakers
+  // Coqui TTS (XTTS v2) - Beta: Only Claribel voice available
   const voiceOptions = [
     {
       id: "", // Empty = use default speaker
       name: "Claribel Dervla",
-      description: "Natural, warm female narrator (Default)",
-    },
-    {
-      id: "",
-      name: "Daisy Studious",
-      description: "Clear, professional female voice",
-    },
-    {
-      id: "",
-      name: "Gracie Wise",
-      description: "Mature, authoritative female",
-    },
-    {
-      id: "",
-      name: "Tammie Ema",
-      description: "Energetic, expressive female",
-    },
-    {
-      id: "",
-      name: "Alison Dietlinde",
-      description: "Soft, gentle female voice",
-    },
-    {
-      id: "",
-      name: "Ana Florence",
-      description: "Young, friendly female",
+      description: "Natural, warm female narrator",
     },
   ];
+
+  /* ADDITIONAL VOICES - Available after beta
+  {
+    id: "",
+    name: "Daisy Studious",
+    description: "Clear, professional female voice",
+  },
+  {
+    id: "",
+    name: "Gracie Wise",
+    description: "Mature, authoritative female",
+  },
+  {
+    id: "",
+    name: "Tammie Ema",
+    description: "Energetic, expressive female",
+  },
+  {
+    id: "",
+    name: "Alison Dietlinde",
+    description: "Soft, gentle female voice",
+  },
+  {
+    id: "",
+    name: "Ana Florence",
+    description: "Young, friendly female",
+  },
+  */
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
